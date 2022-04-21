@@ -38,7 +38,7 @@ def FSMPlot_Start(fsm,startversuch, data, vset, dset, figsize=(16,10)):
     if 'maxload' in startversuch:
         if startversuch['maxload'] == startversuch['maxload']:
             fig.add_layout(Span(location=startversuch['maxload'],dimension='width',x_range_name='default', y_range_name='0',line_color='red', line_dash='solid', line_alpha=0.4)) 
-    fig.add_layout(Span(location=1500,dimension='width',x_range_name='default', y_range_name='1',line_color='blue', line_dash='solid', line_alpha=0.4)) 
+    fig.add_layout(Span(location=fsm._e.Speed_nominal,dimension='width',x_range_name='default', y_range_name='1',line_color='blue', line_dash='solid', line_alpha=0.4)) 
 
     return fig
 
@@ -95,17 +95,18 @@ def _resample_data(fsm, data, startversuch):
         odata3 = data[data.datetime >= d3]
     return pd.concat([odata1,odata2,odata3]).reset_index(drop='index')
 
-def get_cycle_data(fsm,rec, max_length=None, min_length=None, cycletime=None, silent=False, p_data=None, reduce=True):
-    t0 = int(arrow.get(rec['starttime']).timestamp() * 1000 - fsm._pre_period * 1000)
-    t1 = int(arrow.get(rec['endtime']).timestamp() * 1000 + fsm._post_period * 1000)
+def get_cycle_data(fsm,startversuch, max_length=None, min_length=None, cycletime=None, silent=False, p_data=None, reduce=True):
+    
+    t0 = int(arrow.get(startversuch['starttime']).timestamp() * 1000 - fsm._pre_period * 1000)
+    t1 = int(arrow.get(startversuch['endtime']).timestamp() * 1000 + fsm._post_period * 1000)
     if max_length:
         if (t1 - t0) > max_length * 1e3:
             t1 = int(t0 + max_length * 1e3)
     if min_length:
         if (t1 - t0) < min_length * 1e3:
             t1 = int(t0 + min_length * 1e3)
-    data = fsm.load_data(cycletime, tts_from=t0, tts_to=t1, silent=silent, p_data=p_data)
-    #data = fsm._resample_data(data,rec) if reduce else data
+    data = load_data(fsm, cycletime, tts_from=t0, tts_to=t1, silent=silent, p_data=p_data)
+    #data = fsm._resample_data(data,startversuch) if reduce else data
     data = data[(data['time'] >= t0) & (data['time'] <= t1)]
     return data
 #################
@@ -172,39 +173,3 @@ def states_lines(startversuch):
     sv_lines = [v for v in startversuch[filterFSM.vertical_lines_times] if v==v]
     start = startversuch['starttime']; lines=list(np.cumsum(sv_lines)); 
     return [start + pd.Timedelta(value=v,unit='sec') for v in [0] + lines]
-
-def plot_with_additional_results(
-        fsm,
-        startversuch, 
-        vset=None, 
-        dset = 
-        [{'col':['Power_PowerAct'], 'ylim':(0,5000), 'color':'red'},
-        {'col':['Various_Values_SpeedAct'],'ylim': [0, 2500], 'color':'blue'}],
-        dfigsize=(16,8)
-    ):
-
-    if vset == None:
-        vset = []
-        for rec in dset:
-            for d in rec['col']:
-                vset.append(d) 
-        vset = list(set(vset))
-
-    data = get_cycle_data2(fsm, startversuch, max_length=None, min_length=None, cycletime=1, silent=False, p_data=vset)
-    fig = FSMPlot_Start(fsm, startversuch, data, vset, dset, figsize=dfigsize); 
-    #fsm run 2 results
-    lcol='blue'
-    pl, _ = detect_edge_left(data, 'Power_PowerAct', startversuch)
-    pr, _ = detect_edge_right(data, 'Power_PowerAct', startversuch)
-    sl, _ = detect_edge_left(data, 'Various_Values_SpeedAct', startversuch)
-    sr, _ = detect_edge_right(data, 'Various_Values_SpeedAct', startversuch)
-    add_dbokeh_vlines([sl.loc], fig,line_color=lcol, line_dash='solid', line_alpha=0.4)
-    add_dbokeh_vlines([sr.loc], fig,line_color=lcol, line_dash='solid', line_alpha=0.4)
-    add_dbokeh_vlines([pl.loc], fig,line_color=lcol, line_dash='solid', line_alpha=0.4)
-    add_dbokeh_vlines([pr.loc], fig,line_color=lcol, line_dash='solid', line_alpha=0.4)
-
-    #pp(startversuch['timing']) # ['timings']['start_loadramp'])
-    if 'loadramp' in startversuch['timing']:
-        add_dbokeh_vlines([startversuch['timing']['loadramp'][-1]['end']], fig,line_color='green', line_dash='solid', line_alpha=0.4, line_width=4)
-
-    return fig

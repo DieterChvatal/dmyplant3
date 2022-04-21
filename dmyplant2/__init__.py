@@ -19,13 +19,14 @@ from dmyplant2.dPlot import (
     scatter_chart,
     bokeh_chart,
     dbokeh_chart,
-    bokeh_show)
+    bokeh_show,
+    v)
 from dmyplant2.dFSM import (
     FSM, 
     msgFSM, 
     filterFSM, 
     FSMPlot_Start,
-    plot_with_additional_results, 
+    get_cycle_data, 
     get_cycle_data2, 
     disp_result,
     disp_alarms,

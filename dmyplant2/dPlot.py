@@ -32,6 +32,11 @@ from bokeh.models import ColumnDataSource, Div, Span
 from dmyplant2.dReliability import demonstrated_reliability_sr
 import dmyplant2
 
+def v(mp, dset):
+    vset = [d for col in [rec['col'] for rec in dset] for d in col]
+    vset = [d for d in vset if d in mp.get_dataitems()]
+    return vset
+
 def _idx(n, s, e, x):
     return int(n * (x - s) / (e - s)+1)
 

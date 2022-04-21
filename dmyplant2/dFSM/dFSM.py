@@ -150,6 +150,7 @@ class FSM:
                     ]),
                 'speedup': State('speedup',[
                     { 'trigger':'2124 Idle', 'new-state':'idle'},
+                    { 'trigger':'2139 Request Synchronization', 'new-state':'synchronize'}, 
                     { 'trigger':'3226 Ignition off', 'new-state':'standstill'}
                     ]),             
                 'idle': State('idle',[
@@ -163,6 +164,7 @@ class FSM:
                 'loadramp': LoadrampState('loadramp',[
                     { 'trigger':'3226 Ignition off', 'new-state':'standstill'},
                     { 'trigger':'1232 Request module off', 'new-state':'rampdown'},
+                    { 'trigger':'Calculated statechange', 'new-state':'targetoperation'},
                     ], e),             
                 'targetoperation': State('targetoperation',[
                     { 'trigger':'1232 Request module off', 'new-state':'rampdown'},
@@ -390,6 +392,7 @@ class msgFSM:
                 self.svec.startno = self.results['starts_counter']
                 self.svec.in_operation = 'on'
             elif self.svec.in_operation == 'on': # and actstate != FSM.initial_state:
+                self.results['starts'][-1]['mode'] = self.svec.service_selector
                 rec = {'start':self.svec.laststate_start, 'end':self.svec.currentstate_start}
                 if not self.svec.laststate in self.results['starts'][-1]['timing']:
                     self.results['starts'][-1]['timing'][self.svec.laststate]=[rec]

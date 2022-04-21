@@ -1426,7 +1426,8 @@ class Engine:
             '320': 0.975,
             '412': 0.973,
             '416': 0.974,
-            '420': 0.973
+            '420': 0.973,
+            '920': 0.985
         }
         lkey = self['Engine Type']
         return el_eff[lkey] or 0.95
